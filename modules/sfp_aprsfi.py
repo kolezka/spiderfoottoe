@@ -73,7 +73,9 @@ class sfp_aprsfi(SpiderFootAsyncPlugin):
     }
 
     # ── Module wiring ─────────────────────────────────────────────
-    def setup(self) -> None:
+    def setup(self, sfc: SpiderFoot, userOpts: dict = None) -> None:
+        """Set up the module."""
+        super().setup(sfc, userOpts or {})
         self.results = self.tempStorage()
         self.errorState = False
 
