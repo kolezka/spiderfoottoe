@@ -23,6 +23,29 @@ from spiderfoot import SpiderFootDb, SpiderFootHelpers
 from spiderfoot.observability.logging_config import LOG_FORMAT_DEBUG, LOG_FORMAT_TEXT
 
 
+class SafeQueueHandler(QueueHandler):
+    """QueueHandler that tolerates a torn-down queue.
+
+    Scan execution runs in a multiprocessing subprocess; on teardown
+    (or if a stale handler from a prior scan survives the spawn) the
+    referenced queue can be ``None`` or unusable. The stock
+    ``QueueHandler.emit`` then crashes with ``AttributeError:
+    'NoneType' object has no attribute 'put_nowait'`` and pollutes the
+    scan with hundreds of log-emitter tracebacks. We swallow those —
+    losing a log line is far better than aborting the operation.
+    """
+
+    def enqueue(self, record):
+        q = self.queue
+        if q is None:
+            return
+        try:
+            q.put_nowait(record)
+        except Exception:
+            # Closed pipe, full queue, etc. — drop the record silently.
+            return
+
+
 class SpiderFootDbLogHandler(logging.Handler):
     """Handler for logging to database.
 
@@ -289,7 +312,7 @@ def logWorkerSetup(loggingQueue: Any) -> 'logging.Logger':
     for handler in list(log.handlers):
         if isinstance(handler, QueueHandler):
             log.removeHandler(handler)
-    queue_handler = QueueHandler(loggingQueue)
+    queue_handler = SafeQueueHandler(loggingQueue)
     log.addHandler(queue_handler)
     return log
 
