@@ -111,8 +111,10 @@ services:
     environment:
       QDRANT__SERVICE__GRPC_PORT: "6334"
       QDRANT__SERVICE__HTTP_PORT: "6333"
-      # S3 snapshot storage via MinIO
-      QDRANT__STORAGE__SNAPSHOTS_PATH: "/qdrant/snapshots"
+      # Snapshots live inside the persistent qdrant-data volume because
+      # the rootfs is read-only and creating /qdrant/snapshots otherwise
+      # panics qdrant on startup.
+      QDRANT__STORAGE__SNAPSHOTS_PATH: "/qdrant/storage/snapshots"
     depends_on:
       minio:
         condition: service_healthy

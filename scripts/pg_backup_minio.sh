@@ -28,23 +28,23 @@ echo "  Schedule: every ${SCHEDULE_HOURS}h"
 echo "  Retention: ${RETENTION_DAYS} days"
 echo "======================================"
 
-# Install MinIO client if not present
-if ! command -v mc >/dev/null 2>&1; then
-    echo "Installing MinIO client..."
-    # Prefer shared mc binary from minio-init volume
-    if [ -x /opt/mc-share/mc ]; then
-        cp /opt/mc-share/mc /usr/local/bin/mc
-        chmod +x /usr/local/bin/mc
-    elif command -v wget >/dev/null 2>&1; then
-        wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc
-        chmod +x /usr/local/bin/mc
+# Locate MinIO client. The container rootfs is read-only so we cannot
+# write into /usr/local/bin. Prefer the shared binary published to the
+# mc-bin volume by sf-minio-init, otherwise download into /tmp (tmpfs).
+if [ -x /opt/mc-share/mc ]; then
+    export PATH="/opt/mc-share:$PATH"
+elif ! command -v mc >/dev/null 2>&1; then
+    echo "Installing MinIO client to /tmp/mc..."
+    if command -v wget >/dev/null 2>&1; then
+        wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /tmp/mc
     elif command -v curl >/dev/null 2>&1; then
-        curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
-        chmod +x /usr/local/bin/mc
+        curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /tmp/mc
     else
         echo "ERROR: Cannot install mc — no shared binary and no download tool"
         exit 1
     fi
+    chmod +x /tmp/mc
+    export PATH="/tmp:$PATH"
 fi
 
 # Configure MinIO alias
