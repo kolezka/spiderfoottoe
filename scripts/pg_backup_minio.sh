@@ -48,10 +48,10 @@ elif ! command -v mc >/dev/null 2>&1; then
 fi
 
 # Configure MinIO alias
-mc alias set sfminio "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" 2>/dev/null
+mc --config-dir /tmp alias set sfminio "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" 2>/dev/null
 
 # Ensure bucket exists
-mc mb --ignore-existing "sfminio/${BUCKET}" 2>/dev/null || true
+mc --config-dir /tmp mb --ignore-existing "sfminio/${BUCKET}" 2>/dev/null || true
 
 do_backup() {
     DATE_STR=$(date -u +"%Y-%m-%d")
@@ -67,7 +67,7 @@ do_backup() {
         echo "  Backup created: ${FILENAME} (${SIZE} bytes)"
 
         # Upload to MinIO
-        if mc cp "${TMPFILE}" "sfminio/${BUCKET}/daily/${DATE_STR}/${FILENAME}" 2>/dev/null; then
+        if mc --config-dir /tmp cp "${TMPFILE}" "sfminio/${BUCKET}/daily/${DATE_STR}/${FILENAME}" 2>/dev/null; then
             echo "  Uploaded to MinIO: ${BUCKET}/daily/${DATE_STR}/${FILENAME}"
         else
             echo "  ERROR: Failed to upload to MinIO"
@@ -92,11 +92,11 @@ cleanup_old_backups() {
     fi
 
     # List and remove old backup directories
-    mc ls "sfminio/${BUCKET}/daily/" 2>/dev/null | while read -r line; do
+    mc --config-dir /tmp ls "sfminio/${BUCKET}/daily/" 2>/dev/null | while read -r line; do
         DIR_DATE=$(echo "$line" | awk '{print $NF}' | tr -d '/')
         if [ "${DIR_DATE}" \< "${CUTOFF_DATE}" ] 2>/dev/null; then
             echo "  Removing old backup: ${DIR_DATE}"
-            mc rm --recursive --force "sfminio/${BUCKET}/daily/${DIR_DATE}/" 2>/dev/null || true
+            mc --config-dir /tmp rm --recursive --force "sfminio/${BUCKET}/daily/${DIR_DATE}/" 2>/dev/null || true
         fi
     done
 }
