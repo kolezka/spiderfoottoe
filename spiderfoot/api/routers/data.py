@@ -77,6 +77,7 @@ async def list_modules(
     """
     try:
         config = get_app_config()
+        config.reload()
         sf = SpiderFoot(config.get_config())
         modules = sf.getModules()
         # modules may be a dict — convert to list for pagination
@@ -134,6 +135,7 @@ async def get_module_details(module_name: str, api_key: str = optional_auth_dep)
     """
     try:
         config = get_app_config()
+        config.reload()
         sf = SpiderFoot(config.get_config())
         modules = sf.getModules()
         if module_name not in modules:
