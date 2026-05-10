@@ -99,6 +99,10 @@ async def get_config_endpoint(api_key: str = optional_auth_dep) -> ConfigSummary
     """
     try:
         cfg = get_app_config()
+        # Reload from DB so multi-worker deployments see writes made by
+        # sibling workers (without this, refresh after a save shows stale
+        # in-memory state on whichever worker did not handle the write).
+        cfg.reload()
         raw = cfg.get_config()
         safe_config = {
             k: v for k, v in raw.items()

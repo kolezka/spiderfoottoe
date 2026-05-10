@@ -98,7 +98,8 @@ class Config:
         self.defaultConfig = default_config.copy()
         dbh = SpiderFootDb(self.defaultConfig, init=True)
         sf = SpiderFoot(self.defaultConfig)
-        merged = sf.configUnserialize(dbh.configGet(), self.defaultConfig)
+        stored = dbh.configGet()
+        merged = sf.configUnserialize(stored, self.defaultConfig)
 
         # Load modules from filesystem (same as sf_orchestrator)
         if not merged.get('__modules__'):
@@ -116,6 +117,13 @@ class Config:
                     self.log.info("Loaded %d modules into config", len(modules))
                 except Exception as exc:
                     self.log.warning("Failed to load modules: %s", exc)
+
+        # Re-apply stored module options now that __modules__ is populated.
+        # configUnserialize iterates referencePoint['__modules__'] and only
+        # copies sfp_NAME:opt rows from DB when the module exists in the
+        # reference; the first call above ran with an empty __modules__ and
+        # therefore dropped every module-scoped row.
+        merged = sf.configUnserialize(stored, merged)
 
         self._app_config = AppConfig.from_dict(merged)
         self._app_config.apply_env_overrides()
