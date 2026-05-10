@@ -189,7 +189,7 @@ COPY --from=spiderfoot-base /usr/local/bin/docker-entrypoint.sh /usr/local/bin/d
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
     chown -R spiderfoot:spiderfoot /home/spiderfoot
 
-ENV PATH="/opt/venv/bin:$PATH" \
+ENV PATH="/opt/venv/bin:/tools/bin:$PATH" \
     VIRTUAL_ENV="/opt/venv" \
     PYTHONPATH="/home/spiderfoot" \
     PYTHONUNBUFFERED=1

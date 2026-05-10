@@ -162,6 +162,7 @@ async def update_config_endpoint(
     try:
         config = get_app_config()
         config.update_config(new_config)
+        config.save_config()
         return {"status": "success"}
     except Exception as e:
         log.error("Failed to update config: %s", e)

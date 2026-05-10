@@ -29,7 +29,7 @@ class sfp_subdomain_takeover(SpiderFootAsyncPlugin):
     meta = {
         'name': "Subdomain Takeover Checker",
         'summary': "Check if affiliated subdomains are vulnerable to takeover.",
-        'flags': [],
+        'flags': ["deprecated"],
         'useCases': ["Footprint", "Investigate"],
         'categories': ["Crawling and Scanning"],
         "dataSource": {

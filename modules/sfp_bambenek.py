@@ -24,7 +24,7 @@ class sfp_bambenek(SpiderFootAsyncPlugin):
     meta = {
         "name": "Bambenek Consulting",
         "summary": "Check if a host/domain or IP appears in Bambenek Consulting feeds.",
-        "flags": ["slow"],
+        "flags": ["deprecated", "slow"],
         "useCases": ["Investigate", "Passive"],
         "categories": ["Reputation Systems"],
         "dataSource": {

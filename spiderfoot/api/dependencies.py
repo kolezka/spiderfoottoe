@@ -291,17 +291,23 @@ class Config:
     # ------------------------------------------------------------------
 
     def get_module_config(self, module_name: str) -> dict | None:
-        """Return the configuration for a specific module."""
+        """Return the configuration for a specific module.
+
+        Reloads from DB first so multi-worker deployments see writes
+        made by sibling workers.
+        """
+        self.reload()
         modules = self._app_config.modules or {}
         return modules.get(module_name)
 
     def update_module_config(self, module_name: str, new_config: dict) -> None:
-        """Update the configuration for a specific module."""
+        """Update the configuration for a specific module and persist to DB."""
         modules = self._app_config.modules or {}
         if module_name not in modules:
             raise KeyError("404: Module not found")
         modules[module_name] = new_config
         self._app_config.modules = modules
+        self.save_config()
 
     # ------------------------------------------------------------------
     # Misc stubs kept for interface compatibility

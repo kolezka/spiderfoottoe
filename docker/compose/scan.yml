@@ -58,6 +58,10 @@ services:
       CELERY_WORKER_CONCURRENCY: ${CELERY_ACTIVE_WORKER_CONCURRENCY:-2}
       # Wordlists path for gobuster/ffuf/massdns
       SF_WORDLISTS_PATH: "/tools/wordlists"
+      # Ensure /tools/bin (Go-built tools: subfinder, naabu, dnsx, katana,
+      # amass, masscan, hakrawler, etc.) is on PATH so modules with empty
+      # default *_path opts can resolve binaries via PATH lookup.
+      PATH: "/opt/venv/bin:/tools/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
     command:
     - "python"
