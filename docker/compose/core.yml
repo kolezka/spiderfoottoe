@@ -77,6 +77,8 @@ services:
     - ALL
     tmpfs:
     - /tmp:size=256M
+    - /home/spiderfoot/cache:size=512M,mode=1777
+    - /home/spiderfoot/logs:size=128M,mode=1777
     networks:
     - sf-frontend
     - sf-backend
@@ -263,6 +265,8 @@ services:
     - ALL
     tmpfs:
     - /tmp:size=256M
+    - /home/spiderfoot/cache:size=512M,mode=1777
+    - /home/spiderfoot/logs:size=128M,mode=1777
     networks:
     - sf-backend
     - sf-frontend
