@@ -9,6 +9,16 @@ This package contains the core SpiderFoot functionality including:
 
 from __future__ import annotations
 
+# SpiderFoot intentionally issues unverified HTTPS requests to OSINT
+# targets (many have self-signed/expired certs). Suppress urllib3's
+# per-request InsecureRequestWarning — the scan output would otherwise
+# be drowned in identical warnings for every target.
+try:
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except Exception:
+    pass
+
 from .__version__ import __version__
 __author__ = "Steve Micallef, Agostino Panico"
 __license__ = "MIT"
