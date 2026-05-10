@@ -19,6 +19,8 @@ services:
     tmpfs:
     - /tmp:size=512M
     - /var/tmp:size=256M
+    - /home/spiderfoot/cache:size=512M,mode=1777
+    - /home/spiderfoot/logs:size=128M,mode=1777
     environment:
       SF_SERVICE_ROLE: active-scanner
       SF_REDIS_URL: redis://redis:6379/0
