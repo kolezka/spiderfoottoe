@@ -104,6 +104,7 @@ def trigger_recurring_scans() -> dict[str, Any]:
     Queries the recurring scan configuration and submits scan tasks
     for any that are past their next_run time.
     """
+    from spiderfoot import SpiderFootHelpers
     from spiderfoot.tasks.scan import run_scan
 
     import redis as redis_lib
@@ -120,14 +121,25 @@ def trigger_recurring_scans() -> dict[str, Any]:
             next_run = schedule.get("next_run", 0)
 
             if time.time() >= next_run:
+                target = schedule["target"]
+                target_type = SpiderFootHelpers.targetTypeFromString(target)
+                if not target_type:
+                    logger.warning(
+                        "monitor.recurring_skipped: unrecognized target type for %r",
+                        target,
+                    )
+                    continue
+                scan_id = SpiderFootHelpers.genScanInstanceId()
                 run_scan.apply_async(
                     kwargs={
-                        "scan_name": f"Recurring: {schedule.get('target', 'unknown')}",
-                        "scan_target": schedule["target"],
+                        "scan_name": f"Recurring: {target}",
+                        "scan_id": scan_id,
+                        "target_value": target,
+                        "target_type": target_type,
                         "module_list": schedule.get("modules", []),
-                        "type_list": schedule.get("types", []),
                         "global_opts": schedule.get("options", {}),
                     },
+                    task_id=scan_id,
                     queue="scan",
                 )
                 triggered += 1

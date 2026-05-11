@@ -279,13 +279,19 @@ async def trigger_schedule(
             scan_id = SpiderFootHelpers.genScanInstanceId()
             target = data["target"]
             target_type = SpiderFootHelpers.targetTypeFromString(target)
+            if not target_type:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Cannot determine target type for {target!r}",
+                )
 
             run_scan.apply_async(
                 kwargs={
                     "scan_name": f"Scheduled: {data['name']}",
-                    "scan_target": target,
+                    "scan_id": scan_id,
+                    "target_value": target,
+                    "target_type": target_type,
                     "module_list": data.get("modules") or [],
-                    "type_list": [],
                     "global_opts": {},
                 },
                 task_id=scan_id,

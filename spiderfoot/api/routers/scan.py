@@ -364,9 +364,10 @@ async def rerun_scan_multi(
                     run_scan.apply_async(
                         kwargs={
                             "scan_name": record.name,
-                            "scan_target": record.target,
+                            "scan_id": new_scan_id,
+                            "target_value": record.target,
+                            "target_type": target_type,
                             "module_list": modlist,
-                            "type_list": [],
                             "global_opts": cfg,
                         },
                         task_id=new_scan_id,
@@ -2004,9 +2005,10 @@ async def rerun_scan(
                 run_scan.apply_async(
                     kwargs={
                         "scan_name": record.name,
-                        "scan_target": scantarget,
+                        "scan_id": new_scan_id,
+                        "target_value": scantarget,
+                        "target_type": target_type,
                         "module_list": modlist,
-                        "type_list": [],
                         "global_opts": cfg,
                     },
                     task_id=new_scan_id,
