@@ -173,7 +173,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2 libxslt1.1 libjpeg62-turbo zlib1g dnsutils ca-certificates curl \
     nmap nbtscan onesixtyone whatweb sslscan bsdmainutils \
     libpcap0.8 libcap2-bin \
-    chromium git \
+    chromium git nodejs \
     perl libnet-ssleay-perl libwhisker2-perl libjson-perl libxml-writer-perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -196,12 +196,19 @@ ENV PATH="/opt/venv/bin:/tools/bin:$PATH" \
 
 WORKDIR /home/spiderfoot
 
-# Python recon tools (in existing venv)
-RUN /opt/venv/bin/pip install --no-cache-dir \
-    dnstwist snallygaster trufflehog wafw00f \
-    arjun sslyze \
-    git+https://github.com/GerbenJavado/LinkFinder.git \
-    && apt-get purge -y --auto-remove git && rm -rf /var/lib/apt/lists/*
+# Python recon tools (in existing venv).
+# maigret pulls in pycairo, which compiles from source — so add the build
+# toolchain + cairo headers for the pip step and purge them afterwards.
+# libcairo2 itself stays (installed in the main apt block above) so the
+# compiled pycairo can still link against it at runtime.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc pkg-config libcairo2-dev python3-dev libcairo2 \
+    && /opt/venv/bin/pip install --no-cache-dir \
+        dnstwist snallygaster trufflehog wafw00f \
+        arjun sslyze maigret \
+        git+https://github.com/GerbenJavado/LinkFinder.git \
+    && apt-get purge -y --auto-remove gcc pkg-config libcairo2-dev python3-dev git \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # CMSeeK deps
 COPY --from=tool-downloader /tools/CMSeeK/requirements.txt /tmp/cmseek-reqs.txt
@@ -227,6 +234,15 @@ COPY --from=tool-downloader /tools/nikto        /tools/nikto
 # Nikto symlink
 RUN ln -sf /tools/nikto/program/nikto.pl /usr/local/bin/nikto && \
     chmod +x /tools/nikto/program/nikto.pl
+
+# testssl.sh symlink so `testssl.sh` resolves on $PATH
+RUN ln -sf /tools/testssl.sh/testssl.sh /tools/bin/testssl.sh
+
+# retire.js wrapper — `npm install -g retire` installs the package under
+# /tools/lib/node_modules/retire/ but leaves no runnable shim in /tools/bin.
+# package.json declares the CLI entry as ./lib/cli.js, so exec that under node.
+RUN printf '#!/bin/sh\nexec node /tools/lib/node_modules/retire/lib/cli.js "$@"\n' \
+    > /tools/bin/retire && chmod +x /tools/bin/retire
 
 # Make all tools executable
 RUN chmod +x /tools/bin/*

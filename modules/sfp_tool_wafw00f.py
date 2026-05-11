@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os.path
+import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 
 from spiderfoot import SpiderFootEvent
@@ -60,6 +61,16 @@ class sfp_tool_wafw00f(SpiderFootAsyncPlugin):
         self.results = dict()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self) -> str | None:
+        """Resolve the wafw00f binary: explicit path → $PATH → None."""
+        custom = self.opts.get('wafw00f_path', '') or ''
+        if custom:
+            exe = custom + 'wafw00f' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('wafw00f')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['INTERNET_NAME']
@@ -85,18 +96,11 @@ class sfp_tool_wafw00f(SpiderFootAsyncPlugin):
 
         self.results[eventData] = True
 
-        if not self.opts['wafw00f_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_wafw00f but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts['wafw00f_path']
-        if self.opts['wafw00f_path'].endswith('/'):
-            exe = exe + 'wafw00f'
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "wafw00f binary not found. Set 'wafw00f_path' in the module "
+                "options or install wafw00f on $PATH.")
             self.errorState = True
             return
 

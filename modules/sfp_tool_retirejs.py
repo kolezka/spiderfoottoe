@@ -67,6 +67,16 @@ class sfp_tool_retirejs(SpiderFootAsyncPlugin):
         super().setup(sfc, userOpts or {})
         self.errorState = False
         self.results = self.tempStorage()
+    def _resolve_binary(self) -> str | None:
+        """Resolve the retire binary: explicit path → $PATH → None."""
+        custom = self.opts.get('retirejs_path', '') or ''
+        if custom:
+            exe = custom + 'retire' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('retire')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ["LINKED_URL_INTERNAL", "LINKED_URL_EXTERNAL"]
@@ -93,18 +103,11 @@ class sfp_tool_retirejs(SpiderFootAsyncPlugin):
         if self.errorState:
             return
 
-        if not self.opts['retirejs_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_retirejs but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts['retirejs_path']
-        if self.opts['retirejs_path'].endswith('/'):
-            exe = f"{exe}retire"
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "retire binary not found. Set 'retirejs_path' in the module "
+                "options or install retire on $PATH.")
             self.errorState = True
             return
 

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os.path
+import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 
 from spiderfoot import SpiderFootEvent
@@ -68,6 +69,16 @@ class sfp_tool_whatweb(SpiderFootAsyncPlugin):
         self.results = self.tempStorage()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self) -> str | None:
+        """Resolve the whatweb binary: explicit path → $PATH → None."""
+        custom = self.opts.get('whatweb_path', '') or ''
+        if custom:
+            exe = custom + 'whatweb' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('whatweb')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['INTERNET_NAME']
@@ -93,17 +104,11 @@ class sfp_tool_whatweb(SpiderFootAsyncPlugin):
 
         self.results[eventData] = True
 
-        if not self.opts['whatweb_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_whatweb but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts['whatweb_path']
-
-        # If tool is not found, abort
-        if not os.path.isfile(exe):
-            self.error("File does not exist: " + exe)
+                "whatweb binary not found. Set 'whatweb_path' in the module "
+                "options or install whatweb on $PATH.")
             self.errorState = True
             return
 

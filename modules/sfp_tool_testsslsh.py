@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 import json
+import shutil
 import tempfile
 from netaddr import IPNetwork
 from subprocess import PIPE, Popen, TimeoutExpired
@@ -69,6 +70,16 @@ class sfp_tool_testsslsh(SpiderFootAsyncPlugin):
         self.results = dict()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self) -> str | None:
+        """Resolve the testssl.sh binary: explicit path → $PATH → None."""
+        custom = self.opts.get('testsslsh_path', '') or ''
+        if custom:
+            exe = custom + 'testssl.sh' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('testssl.sh')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['INTERNET_NAME', 'IP_ADDRESS', 'NETBLOCK_OWNER']
@@ -99,24 +110,17 @@ class sfp_tool_testsslsh(SpiderFootAsyncPlugin):
             self.debug("Skipping event from myself.")
             return
 
-        if not self.opts['testsslsh_path']:
-            self.error(
-                "You enabled sfp_tool_testsslsh but did not set a path to the tool!")
-            self.errorState = True
-            return
-
         if self.opts['mincve'].upper().strip() not in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
             self.error(
                 "Invalid CVE threshold configuration. Must be CRITICAL, HIGH, MEDIUM or LOW.")
             self.errorState = True
             return
 
-        exe = self.opts['testsslsh_path']
-        if self.opts['testsslsh_path'].endswith('/'):
-            exe = f"{exe}testssl.sh"
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+        exe = self._resolve_binary()
+        if not exe:
+            self.error(
+                "testssl.sh binary not found. Set 'testsslsh_path' in the "
+                "module options or install testssl.sh on $PATH.")
             self.errorState = True
             return
 

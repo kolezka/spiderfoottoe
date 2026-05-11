@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 import json
 import os.path
+import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 
 from spiderfoot import SpiderFootEvent
@@ -64,6 +65,35 @@ class sfp_tool_cmseek(SpiderFootAsyncPlugin):
         self.results = self.tempStorage()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self):
+        """Resolve cmseek.py: explicit path → $PATH (cmseek/cmseek.py) → None.
+
+        Returns a tuple (exe, resultpath) or (None, None) when not found.
+        """
+        custom = self.opts.get('cmseekpath', '') or ''
+        if custom:
+            if custom.endswith('cmseek.py'):
+                exe = custom
+                resultpath = custom.rsplit('cmseek.py', 1)[0].rstrip('/') + '/Result'
+            elif custom.endswith('/'):
+                exe = custom + 'cmseek.py'
+                resultpath = custom + 'Result'
+            else:
+                exe = custom + '/cmseek.py'
+                resultpath = custom + '/Result'
+            if os.path.isfile(exe):
+                return exe, resultpath
+            return None, None
+
+        # PATH fallback: prefer a 'cmseek' wrapper, else look for 'cmseek.py'.
+        # shutil.which already verifies the file is executable, so we don't
+        # double-check with os.path.isfile().
+        found = shutil.which('cmseek') or shutil.which('cmseek.py')
+        if found:
+            resultpath = os.path.join(os.path.dirname(found), 'Result')
+            return found, resultpath
+        return None, None
+
     # What events is this module interested in for input
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
@@ -94,27 +124,11 @@ class sfp_tool_cmseek(SpiderFootAsyncPlugin):
 
         self.results[eventData] = True
 
-        if not self.opts['cmseekpath']:
+        exe, resultpath = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_cmseek but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        # Normalize path
-        if self.opts['cmseekpath'].endswith('cmseek.py'):
-            exe = self.opts['cmseekpath']
-            resultpath = self.opts['cmseekpath'].split("cmseek.py")[
-                0] + "/Result"
-        elif self.opts['cmseekpath'].endswith('/'):
-            exe = self.opts['cmseekpath'] + "cmseek.py"
-            resultpath = self.opts['cmseekpath'] + "Result"
-        else:
-            exe = self.opts['cmseekpath'] + "/cmseek.py"
-            resultpath = self.opts['cmseekpath'] + "/Result"
-
-        # If tool is not found, abort
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "cmseek.py not found. Set 'cmseekpath' in the module options "
+                "or install cmseek on $PATH.")
             self.errorState = True
             return
 

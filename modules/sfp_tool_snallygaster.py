@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os.path
+import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 
 from spiderfoot import SpiderFootEvent, SpiderFootHelpers
@@ -63,6 +64,16 @@ class sfp_tool_snallygaster(SpiderFootAsyncPlugin):
         self.results = dict()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self) -> str | None:
+        """Resolve the snallygaster binary: explicit path → $PATH → None."""
+        custom = self.opts.get('snallygaster_path', '') or ''
+        if custom:
+            exe = custom + 'snallygaster' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('snallygaster')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['INTERNET_NAME']
@@ -94,18 +105,11 @@ class sfp_tool_snallygaster(SpiderFootAsyncPlugin):
 
         self.results[eventData] = True
 
-        if not self.opts['snallygaster_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_snallygaster but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts["snallygaster_path"]
-        if self.opts["snallygaster_path"].endswith("/"):
-            exe = f"{exe}snallygaster"
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "snallygaster binary not found. Set 'snallygaster_path' in "
+                "the module options or install snallygaster on $PATH.")
             self.errorState = True
             return
 

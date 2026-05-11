@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 from urllib.parse import urlparse
 
@@ -65,6 +66,16 @@ class sfp_tool_trufflehog(SpiderFootAsyncPlugin):
         self.results = dict()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self) -> str | None:
+        """Resolve the trufflehog binary: explicit path → $PATH → None."""
+        custom = self.opts.get('trufflehog_path', '') or ''
+        if custom:
+            exe = custom + 'trufflehog' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('trufflehog')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['SOCIAL_MEDIA', 'PUBLIC_CODE_REPO']
@@ -85,18 +96,11 @@ class sfp_tool_trufflehog(SpiderFootAsyncPlugin):
         if self.errorState:
             return
 
-        if not self.opts['trufflehog_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_trufflehog but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts['trufflehog_path']
-        if self.opts['trufflehog_path'].endswith('/'):
-            exe = f"{exe}trufflehog"
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "trufflehog binary not found. Set 'trufflehog_path' in the "
+                "module options or install trufflehog on $PATH.")
             self.errorState = True
             return
 

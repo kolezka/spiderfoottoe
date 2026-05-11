@@ -16,6 +16,7 @@ from __future__ import annotations
 # -------------------------------------------------------------------------------
 
 import os.path
+import shutil
 import tempfile
 from netaddr import IPNetwork
 from subprocess import PIPE, Popen, TimeoutExpired
@@ -77,6 +78,16 @@ class sfp_tool_onesixtyone(SpiderFootAsyncPlugin):
                 f"Unable to write communities file ({self.communitiesFile}): {e}")
             self.errorState = True
 
+    def _resolve_binary(self) -> str | None:
+        """Resolve the onesixtyone binary: explicit path → $PATH → None."""
+        custom = self.opts.get('onesixtyone_path', '') or ''
+        if custom:
+            exe = custom + 'onesixtyone' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('onesixtyone')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['IP_ADDRESS', 'NETBLOCK_OWNER']
@@ -104,18 +115,11 @@ class sfp_tool_onesixtyone(SpiderFootAsyncPlugin):
             self.debug("Skipping event from myself.")
             return
 
-        if not self.opts['onesixtyone_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_onesixtyone but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts['onesixtyone_path']
-        if self.opts['onesixtyone_path'].endswith('/'):
-            exe = f"{exe}onesixtyone"
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "onesixtyone binary not found. Set 'onesixtyone_path' in the "
+                "module options or install onesixtyone on $PATH.")
             self.errorState = True
             return
 

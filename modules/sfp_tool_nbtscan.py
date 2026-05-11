@@ -16,6 +16,7 @@ from __future__ import annotations
 # -------------------------------------------------------------------------------
 
 import os.path
+import shutil
 from netaddr import IPNetwork
 from subprocess import PIPE, Popen, TimeoutExpired
 
@@ -67,6 +68,16 @@ class sfp_tool_nbtscan(SpiderFootAsyncPlugin):
         self.results = dict()
         self.errorState = False
         self.__dataSource__ = "Target Website"
+    def _resolve_binary(self) -> str | None:
+        """Resolve the nbtscan binary: explicit path → $PATH → None."""
+        custom = self.opts.get('nbtscan_path', '') or ''
+        if custom:
+            exe = custom + 'nbtscan' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            return None
+        return shutil.which('nbtscan')
+
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
         return ['IP_ADDRESS', 'NETBLOCK_OWNER']
@@ -91,18 +102,11 @@ class sfp_tool_nbtscan(SpiderFootAsyncPlugin):
             self.debug("Skipping event from myself.")
             return
 
-        if not self.opts['nbtscan_path']:
+        exe = self._resolve_binary()
+        if not exe:
             self.error(
-                "You enabled sfp_tool_nbtscan but did not set a path to the tool!")
-            self.errorState = True
-            return
-
-        exe = self.opts['nbtscan_path']
-        if self.opts['nbtscan_path'].endswith('/'):
-            exe = f"{exe}nbtscan"
-
-        if not os.path.isfile(exe):
-            self.error(f"File does not exist: {exe}")
+                "nbtscan binary not found. Set 'nbtscan_path' in the module "
+                "options or install nbtscan on $PATH.")
             self.errorState = True
             return
 

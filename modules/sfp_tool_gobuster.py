@@ -101,6 +101,21 @@ class sfp_tool_gobuster(SpiderFootAsyncPlugin):
         super().setup(sfc, userOpts or {})
         self.errorState = False
         self.results = self.tempStorage()
+    def _resolve_binary(self) -> str | None:
+        """Resolve the gobuster binary: explicit path → $PATH → None."""
+        custom = self.opts.get('gobuster_path', '') or ''
+        if custom:
+            exe = custom + 'gobuster' if custom.endswith('/') else custom
+            if os.path.isfile(exe):
+                return exe
+            # Bare command name: let shutil.which look it up on $PATH.
+            if '/' not in custom and '\\' not in custom:
+                resolved = shutil.which(custom)
+                if resolved:
+                    return resolved
+            return None
+        return shutil.which('gobuster')
+
     # What events is this module interested in for input
     def watchedEvents(self) -> list:
         """Return the list of events this module watches."""
@@ -233,13 +248,13 @@ class sfp_tool_gobuster(SpiderFootAsyncPlugin):
                 self.notifyListeners(evt)
             return
 
-        gobuster_path = self.opts["gobuster_path"]
         wordlist = self.opts["wordlist"]
 
+        gobuster_path = self._resolve_binary()
         if not gobuster_path:
             self.error(
-                "You enabled sfp_tool_gobuster but did not set a path to the tool!"
-            )
+                "gobuster binary not found. Set 'gobuster_path' in the "
+                "module options or install gobuster on $PATH.")
             self.errorState = True
             return
 
@@ -248,18 +263,6 @@ class sfp_tool_gobuster(SpiderFootAsyncPlugin):
                 "You enabled sfp_tool_gobuster but did not set a wordlist!")
             self.errorState = True
             return
-
-        if (
-            not os.path.isfile(gobuster_path) and
-            "/" not in gobuster_path and
-            "\\" not in gobuster_path
-        ):
-            resolved = shutil.which(gobuster_path)
-            if not resolved:
-                self.error(f"Gobuster tool '{gobuster_path}' not found")
-                self.errorState = True
-                return
-            gobuster_path = resolved
 
         if not os.path.isfile(wordlist):
             self.error(f"Wordlist '{wordlist}' not found")
