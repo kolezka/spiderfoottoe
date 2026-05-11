@@ -55,11 +55,13 @@ __all__ = [
 _DB_TO_STATE = {
     "CREATED": ScanState.CREATED,
     "QUEUED": ScanState.QUEUED,
+    "INITIALIZING": ScanState.STARTING,     # legacy pre-start alias (scanner.py)
     "STARTING": ScanState.STARTING,
     "RUNNING": ScanState.RUNNING,
     "STARTED": ScanState.RUNNING,          # legacy alias
     "PAUSED": ScanState.PAUSED,
     "ABORT-REQUESTED": ScanState.STOPPING,
+    "ABORTING": ScanState.STOPPING,        # legacy alias of ABORT-REQUESTED
     "ABORTED": ScanState.CANCELLED,
     "FINISHED": ScanState.COMPLETED,
     "ERROR-FAILED": ScanState.FAILED,

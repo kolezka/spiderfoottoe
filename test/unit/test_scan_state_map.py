@@ -35,6 +35,12 @@ class TestDbStatusToState:
     def test_started_alias(self):
         assert db_status_to_state("STARTED") == ScanState.RUNNING
 
+    def test_initializing_alias(self):
+        assert db_status_to_state("INITIALIZING") == ScanState.STARTING
+
+    def test_aborting_alias(self):
+        assert db_status_to_state("ABORTING") == ScanState.STOPPING
+
     def test_unknown_defaults_to_created(self):
         assert db_status_to_state("NONSENSE") == ScanState.CREATED
 
