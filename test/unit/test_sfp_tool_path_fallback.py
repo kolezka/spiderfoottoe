@@ -37,6 +37,9 @@ STRICT_MODULES = [
     # cmseek is special: it ships as ``cmseek.py`` and uses ``cmseekpath``.
     ("modules.sfp_tool_cmseek", "sfp_tool_cmseek", "cmseekpath", "cmseek"),
     ("modules.sfp_tool_maigret", "sfp_tool_maigret", "maigret_path", "maigret"),
+    ("modules.sfp_tool_ghunt", "sfp_tool_ghunt", "ghunt_path", "ghunt"),
+    ("modules.sfp_tool_holehe", "sfp_tool_holehe", "holehe_path", "holehe"),
+    ("modules.sfp_tool_sherlock", "sfp_tool_sherlock", "sherlock_path", "sherlock"),
 ]
 
 

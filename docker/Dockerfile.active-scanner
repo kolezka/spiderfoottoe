@@ -201,11 +201,22 @@ WORKDIR /home/spiderfoot
 # toolchain + cairo headers for the pip step and purge them afterwards.
 # libcairo2 itself stays (installed in the main apt block above) so the
 # compiled pycairo can still link against it at runtime.
+#
+# NOTE: ghunt requires an authenticated session file at
+#   ~/.malfrats/ghunt/creds.m
+# which is NOT baked into this image (the file is account-bound and
+# would also tie the image to a specific operator). To enable the
+# sfp_tool_ghunt module, run `ghunt login` once on a host machine and
+# bind-mount the resulting ~/.malfrats/ghunt/ directory into the
+# active-scanner container at /home/spiderfoot/.malfrats/ghunt/.
+# Without that mount the module sets errorState on first event with a
+# clear actionable message.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc pkg-config libcairo2-dev python3-dev libcairo2 \
     && /opt/venv/bin/pip install --no-cache-dir \
         dnstwist snallygaster trufflehog wafw00f \
         arjun sslyze maigret \
+        ghunt holehe sherlock-project ignorant \
         git+https://github.com/GerbenJavado/LinkFinder.git \
     && apt-get purge -y --auto-remove gcc pkg-config libcairo2-dev python3-dev git \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
