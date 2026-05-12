@@ -216,7 +216,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && /opt/venv/bin/pip install --no-cache-dir \
         dnstwist snallygaster trufflehog wafw00f \
         arjun sslyze maigret \
-        ghunt holehe sherlock-project ignorant \
+        holehe sherlock-project ignorant \
+        git+https://github.com/mxrch/ghunt.git \
         git+https://github.com/GerbenJavado/LinkFinder.git \
     && apt-get purge -y --auto-remove gcc pkg-config libcairo2-dev python3-dev git \
     && apt-get clean && rm -rf /var/lib/apt/lists/*

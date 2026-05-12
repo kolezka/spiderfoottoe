@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """SpiderFoot plug-in module: tool_ghunt.
 
-Wraps the ``ghunt`` OSINT tool (https://github.com/mxrch/GHunt), which
+Wraps the ``ghunt`` OSINT tool (https://github.com/mxrch/ghunt), which
 investigates Google accounts associated with an email address.
 
 NOTE: ``ghunt`` is licensed under AGPL-3.0. Bundling it inside an image
@@ -17,7 +17,7 @@ copyleft. Operators must comply with the AGPL when running this module.
 # Name:        sfp_tool_ghunt
 # Purpose:     SpiderFoot plug-in for the 'ghunt' OSINT email/Google-account
 #              investigation tool.
-#              Tool: https://github.com/mxrch/GHunt
+#              Tool: https://github.com/mxrch/ghunt
 # License:     ghunt is AGPL-3.0; see module docstring above.
 # -------------------------------------------------------------------------------
 
@@ -55,8 +55,8 @@ class sfp_tool_ghunt(SpiderFootAsyncPlugin):
                 "Requires a one-off authenticated session (`ghunt login`) on a "
                 "host machine; the resulting ~/.malfrats/ghunt/ directory must "
                 "be mounted into the scanner container.",
-            'website': "https://github.com/mxrch/GHunt",
-            'repository': "https://github.com/mxrch/GHunt",
+            'website': "https://github.com/mxrch/ghunt",
+            'repository': "https://github.com/mxrch/ghunt",
         },
     }
 
