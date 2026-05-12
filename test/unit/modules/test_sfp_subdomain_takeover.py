@@ -30,6 +30,41 @@ class TestModuleSubdomain_takeover(TestModuleBase):
         module = sfp_subdomain_takeover()
         self.assertIsInstance(module.producedEvents(), list)
 
+    def test_normalise_fingerprints_handles_edoverflow_schema(self):
+        """EdOverflow's schema uses string fingerprints, sometimes missing."""
+        raw = [
+            # Single-string fingerprint — must be wrapped in a list.
+            {"service": "Heroku", "cname": ["herokuapp.com"],
+             "fingerprint": "There's nothing here, yet.", "nxdomain": False},
+            # Already a list — pass through.
+            {"service": "GitHub", "cname": ["github.io"],
+             "fingerprint": ["There isn't a GitHub Pages site here."],
+             "nxdomain": False},
+            # NXDOMAIN-only entry: no fingerprint at all.
+            {"service": "AWS/EB", "cname": ["elasticbeanstalk.com"],
+             "nxdomain": True},
+            # Missing cname — drop entirely.
+            {"service": "Bogus", "fingerprint": "x", "nxdomain": False},
+            # Single-string cname — coerce to list.
+            {"service": "Coerce", "cname": "single.example.com",
+             "fingerprint": "marker", "nxdomain": False},
+        ]
+        out = sfp_subdomain_takeover._normalise_fingerprints(raw)
+        services = [e["service"] for e in out]
+        self.assertEqual(services, ["Heroku", "GitHub", "AWS/EB", "Coerce"])
+        # Fingerprint is always a list.
+        for e in out:
+            self.assertIsInstance(e["cname"], list)
+            self.assertIsInstance(e["fingerprint"], list)
+            self.assertIsInstance(e["nxdomain"], bool)
+        # NXDOMAIN-only entry has empty fingerprint list (not missing).
+        nx = next(e for e in out if e["service"] == "AWS/EB")
+        self.assertEqual(nx["fingerprint"], [])
+        self.assertTrue(nx["nxdomain"])
+        # Coerced cname.
+        coerce = next(e for e in out if e["service"] == "Coerce")
+        self.assertEqual(coerce["cname"], ["single.example.com"])
+
     def setUp(self):
         """Set up before each test."""
         super().setUp()

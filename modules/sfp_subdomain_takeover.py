@@ -58,9 +58,14 @@ class sfp_subdomain_takeover(SpiderFootAsyncPlugin):
         super().setup(sfc, userOpts or {})
         self.results = self.tempStorage()
         self.errorState = False
-        content = self.cache_get("subjack-fingerprints", 48)
+        # haccer/subjack/master/fingerprints.json was removed upstream;
+        # use EdOverflow's actively-maintained list as the authoritative
+        # source. The schema is similar (cname/service/nxdomain) but
+        # ``fingerprint`` is a single string rather than a list, so
+        # _normalise_fingerprints() coerces it.
+        content = self.cache_get("takeover-fingerprints", 48)
         if content is None:
-            url = "https://raw.githubusercontent.com/haccer/subjack/master/fingerprints.json"
+            url = "https://raw.githubusercontent.com/EdOverflow/can-i-take-over-xyz/master/fingerprints.json"
             res = self.fetch_url(url, useragent="SpiderFoot")
 
             if res['content'] is None:
@@ -68,16 +73,59 @@ class sfp_subdomain_takeover(SpiderFootAsyncPlugin):
                 self.errorState = True
                 return
 
-            self.cache_put("subjack-fingerprints", res['content'])
+            self.cache_put("takeover-fingerprints", res['content'])
             content = res['content']
 
         try:
-            self.fingerprints = json.loads(content)
+            raw = json.loads(content)
         except Exception as e:
             self.error(
                 f"Unable to parse subdomain takeover fingerprints list: {e}")
             self.errorState = True
             return
+
+        self.fingerprints = self._normalise_fingerprints(raw)
+
+    @staticmethod
+    def _normalise_fingerprints(raw):
+        """Coerce upstream entries into the schema this module expects.
+
+        Each entry must have list-typed ``cname`` and ``fingerprint`` fields
+        and a ``nxdomain`` boolean. Entries missing ``cname`` are dropped.
+        EdOverflow's source uses a single string for ``fingerprint``; wrap
+        it in a list. Some entries omit ``fingerprint`` entirely (typically
+        the NXDOMAIN-only ones) — those get an empty fingerprint list, so
+        the AFFILIATE_INTERNET_NAME branch silently skips them while the
+        AFFILIATE_INTERNET_NAME_UNRESOLVED branch still fires when nxdomain
+        is set.
+        """
+        if not isinstance(raw, list):
+            return []
+        out = []
+        for entry in raw:
+            if not isinstance(entry, dict):
+                continue
+            cnames = entry.get("cname") or []
+            if isinstance(cnames, str):
+                cnames = [cnames]
+            if not cnames:
+                continue
+            fp = entry.get("fingerprint")
+            if fp is None:
+                fps = []
+            elif isinstance(fp, str):
+                fps = [fp] if fp else []
+            elif isinstance(fp, list):
+                fps = [f for f in fp if isinstance(f, str) and f]
+            else:
+                fps = []
+            out.append({
+                "service": entry.get("service") or "Unknown",
+                "cname": cnames,
+                "fingerprint": fps,
+                "nxdomain": bool(entry.get("nxdomain")),
+            })
+        return out
 
     # What events is this module interested in for input
     def watchedEvents(self) -> list:
