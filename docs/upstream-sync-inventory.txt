@@ -1,0 +1,111 @@
+4b53ca68 Merge pull request #388 from poppopjmp/claude/codebase-audit-alignment-I4YfS
+5993aeef docs: align documentation to v6.1.0 + add adoption/upgrade guide
+59e6624c ci(codeql): scope analysis to product code to fix code-scanning failure
+812c49b9 release: bump frontend UI version to 6.1.0
+be42e2d0 release: bump version to 6.1.0
+33f6289d ci: fix intermittent coverage C-tracer SystemError under threaded tests
+22318680 docs(audit): record real-PostgreSQL DB integration gate (seventh pass)
+f5194da2 test(db): add full configSerialize->DB->configUnserialize round-trip
+ff8581de ci+test: real-PostgreSQL integration gate for the SpiderFootDb layer
+a60ed576 docs(audit): record correlation regex fix + event-routing verification
+c59a2a99 fix(core): invalid regex in a correlation rule no longer aborts the run
+0a5b5039 test: broaden scanner logging sanitizer to all loggers (residual flake)
+4039cbc9 docs(audit): record systematic core examination (sixth pass)
+2b308d3d fix(core): case-insensitive scope matching in SpiderFootTarget.matches
+049cafbb fix(core): port-aware URL dedup normalization (was mangling non-default ports)
+fe159d1c chore(core): remove Pydantic v1 .dict() and deprecated datetime.utcnow()
+69295fd7 docs(audit): record core component hardening (netaddr 1.x + config round trip)
+4ef92852 fix(core): config bool options no longer flip True->False on round trip
+50f42319 fix(core): correct two more netaddr-1.x is_private misuses in proxy logic
+9eed93ac fix(core): correct IP scope/SSRF classification broken by netaddr 1.x
+a8cd409e docs(audit): record structural DB-bound router coverage + flakiness fix
+27a270be test(api): add scan_progress router tests (scan_progress.py 0->60%)
+7954ce37 test(api): add tasks router tests (tasks.py 0->82%)
+2782aa7e test(api): structural visualization router tests (visualization.py 0->56%)
+8143e7ef ci: ratchet coverage gate 66 -> 70
+a5d95f26 test: harden scanner tests against leaked logging-formatter pollution
+409cbb5b test(api): structural reports router tests (reports.py 0->50%)
+2e6fbd80 test(api): structural scan router tests via FakeScanService (scan.py 0->21%)
+432f8a2c docs(audit): record AST sweep results + correlations/frontend_data tests
+2fcc4a61 test(api): add frontend_data router tests (frontend_data.py 0->83%)
+fe84ad58 test(api): add correlations router tests; fix deprecated Pydantic .dict()
+8d570c11 fix(api): unshadow POST /storage/snapshots/all; guard all methods
+b93273aa docs(audit): record bulk-disable + 4xx-swallowing bug fixes
+ec462493 fix(api): preserve intended 4xx status codes swallowed by broad except
+e6d994d3 test(api): add JSONL streaming export tests (export.py 34%->54%)
+30bff953 test(api): expand workspace router tests (workspace.py 26%->54%)
+122c585b fix(api): POST /data/modules/bulk-disable accepts a JSON body
+9db5ad55 docs(audit): record Celery task + LLM agent test coverage
+a193ab5d test(tasks): add agent task prompt-builder + batch tests (agents.py 0->49%)
+c741af60 test(tasks): add report task + _store_report tests (report.py 0->52%)
+b02c12cf test(tasks): add scan task/helper tests (scan.py standalone fns)
+b1666b53 test(agents): add concrete LLM agent tests (5 agents, ~65% avg)
+e6e17940 test(tasks): add export_scan_data task tests (export.py 0->86%)
+a643d2a1 test(tasks): add monitor task tests (monitor.py 0->77%)
+8f79d2a6 test(tasks): add maintenance Celery task tests (maintenance.py 0->97%)
+f516ca3a docs(audit): record full API-router test coverage + FakeRedis helper
+a59145ae test(api): add workspace router tests (workspace.py 0->26%)
+74d61700 test(api): add storage router tests (storage.py 0->60%)
+da694a88 test(api): add export router tests (export.py 0->34%)
+4c0706f6 test(api): add schedules + monitor router tests via FakeRedis (88%, 72%)
+03583be5 test(api): add keys router tests via shared FakeRedis helper (keys.py 0->85%)
+e7120010 test(api): add rbac_roles (RBAC v2) router tests (rbac_roles.py 0->83%)
+f87e1f70 test(api): add sso and distributed_scan router tests
+183fc2e3 test(api): add rbac, ai_scan_config, data_retention, webhook_delivery tests
+ea2037bf fix(asm): POST /asm/ingest no longer crashes on non-risk events
+52937d94 test(api): add marketplace, rate_limits, engines router tests
+6b81868e test(api): add webhooks router tests (webhooks.py 0->72%)
+f63aa8c6 fix(api): data module-dependencies endpoint no longer crashes on metadata failure
+b7ea6982 test(api): add report_templates, tag_group, scan_comparison router tests
+7dbfb76d docs(audit): record third pass — test maturity & route-shadowing bug class
+cd24e383 test(api): add app-wide route-shadowing regression guard
+4f05cd67 fix(api): unshadow literal GET sub-paths in webhooks, health, scan
+e220a669 fix(api): unshadow literal GET sub-paths in 4 more routers
+a00e024f fix(api): unshadow notification-rules sub-paths; add router tests
+52c3278c test(api): add audit router tests (audit.py 0%->100%)
+ce6e5964 test(api): add tenants router tests (tenants.py 0%->96%)
+635a2272 test(api): add scan_metrics + STIX/TAXII router tests
+4b3c1f75 test(api): add SARIF router tests (sarif.py 0%->100%)
+08c7aec8 test+ci: add tool-wrapper contract tests; gate coverage at 66%
+f29c8a4b test(grpc): use OS-assigned ports to fix cross-file collision flakiness
+cc709451 ci+security: add Codacy config/coverage, gate Bandit on HIGH, fix MD5 findings
+0f40531c docs: add SECURITY.md vulnerability-disclosure policy
+64ede6c2 ci(deploy): fix dead workflow_run trigger (main -> master)
+6145e3b9 fix(tasks): use 'logger' not undefined 'log' in maintenance.vacuum
+5e0d47fe docs: complete documentation alignment pass (env vars, endpoints, versions)
+e9279aa2 docs: finish API-reference, env-var, and async-guide alignment
+2bcf2b1e docs: finish env-var, API-reference, and command alignment
+e3f828fe docs(test): fix run command, drop unavailable --flake8 flag, :5001->:8001, sf.py->sfapi
+a0c340dd docs: correct env-var names and residual version/config references
+67f9d3e4 docs: actually apply modules.md name/link/count fixes
+47145c71 docs: fix correlation doc link depths and dead targets
+ac6b5b35 docs: fix broken links, removed-component refs, and security filenames
+ec154966 docs: fix developer-doc class/endpoint/module names
+acf1e8af docs: align version strings and stat counts across guides
+c48c1ea2 docs: align ARCHITECTURE.md with actual module paths and counts
+7825400f docs: remove stale sfp_riskiq row from modules.md (module removed)
+1dd20755 docs: align module & correlation docs with actual modules/rules
+75cdaf24 fix(modules): align plugin calls with the current service/core API
+af2480bd docs: record second-pass deferred-item resolution in AUDIT.md
+4624feb2 fix(frontend): gate RequirePermission on loading; keyboard-accessible toggles
+2cee72c7 test(frontend): update Layout version assertions to v6.0.1
+123ca574 chore(infra): align Vector image tag and pre-create sf-enrichment bucket
+94571d25 fix(modules): add top-of-handleEvent errorState guard to 97 modules
+1a563b2b fix(cli): URL-escape query params, validate compare IDs, env-var password
+990d4856 fix(modules): relocate misplaced handleEvent docstrings before errorState guard
+25f37c12 fix(modules): guard unprotected json.loads against malformed API responses
+43590b45 fix(core/db): consolidate event-type catalogs and add opt-in result paging
+3780780b fix(core/auth): close SSO column-injection, harden secret/CSRF, robust row mapping
+20581323 docs: reconcile AUDIT.md with implemented fixes and verified non-issues
+1879df27 test: fix invalid in-memory DB fixture and drop per-test sleep
+da4f0269 fix(cli): align Go CLI with the actual REST API contract
+5792e6b9 docs: align documentation, version strings, and changelog with v6.0.1
+1aa88024 fix(modules): correctness and resource-safety fixes
+9d955283 fix(core): correctness, broken imports, and FIPS-safe hashing
+9d9df080 docs: add codebase audit report (swarm audit findings)
+a8225850 Merge pull request #387 from poppopjmp/dev-v6.0.1
+bb015f6c feat: implement Helm chart for Kubernetes deployment and add comprehensive module documentation
+5416d631 feat: add E2E testing framework, Docker compose core services, and related automation scripts
+c2b452f5 feat: implement containerized microservices architecture with Docker Compose and service integration support
+a96edfa7 feat: implement modular LLM-powered analysis agents and IaC advisor integration
+37f4e36d Add unit tests for AI agent stability helpers

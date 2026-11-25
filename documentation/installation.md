@@ -8,12 +8,11 @@ This guide will walk you through installing SpiderFoot v6.0.0 on Linux, macOS, o
 
 ## Requirements
 
-- **Python 3.11 or higher** (recommended: Python 3.11+)
-- **pip** (Python package manager)
+- **Docker with Docker Compose** to run the stack
+- **Python 3.11 or higher and pip** only for local Python development
 - **Git** (for cloning the repository)
 - **Memory**: Minimum 2GB RAM (4GB+ recommended for enhanced features)
 - **Disk Space**: Minimum 2GB (additional space for caching and databases)
-- **(Optional)** Docker and Docker Compose for containerized deployments
 
 ### Enhanced Features Requirements
 
@@ -25,36 +24,16 @@ For full functionality of enhanced modules:
 
 ## Installation Steps (Linux, macOS, Windows)
 
-1. **Clone the repository:**
+1. **Clone this fork:**
 
    ```sh
-   git clone https://github.com/poppopjmp/spiderfoot.git
-   cd spiderfoot
+   git clone https://github.com/kolezka/spiderfoottoe.git
+   cd spiderfoottoe
    ```
 
-2. **Install dependencies:**
+2. **Start the core stack** using the Docker Compose instructions below. The images install the Python dependencies; you do not need to install them on the host.
 
-   ```sh
-   pip install -r requirements.txt
-   ```
-
-   - If you use a virtual environment:
-
-     ```sh
-     python -m venv venv
-     source venv/bin/activate  # On Windows: venv\Scripts\activate
-     pip install -r requirements.txt
-     ```
-
-3. **Run SpiderFoot:**
-
-   ```sh
-   python sf.py -l 127.0.0.1:5001
-   ```
-
-   - Open [http://127.0.0.1:5001](http://127.0.0.1:5001) in your browser.
-   - The default admin account will be created on first launch. Set a strong password.
-   - You can change the listening address and port as needed.
+3. Once the frontend is ready, open [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 ---
 
@@ -68,11 +47,14 @@ Docker is the easiest way to run SpiderFoot in a portable, isolated environment.
   cp .env.example .env
   # Edit .env — change passwords, uncomment profile sections as needed
 
+  # The API and worker depend on a local base image; Compose does not build it.
+  docker build -f docker/Dockerfile.base -t spiderfoot-base:latest .
+
   # Core only (5 services: postgres, redis, api, worker, frontend)
   docker compose -f docker-compose.yml up --build -d
 
-  # Full stack (all services except SSO)
-  docker compose -f docker-compose.yml --profile full up --build -d
+  # Alternatively, start the full profile instead of core only:
+  # docker compose -f docker-compose.yml --profile full up --build -d
   ```
 
   See [Docker Deployment Guide](docker_deployment.md) for available profiles and advanced configuration.
