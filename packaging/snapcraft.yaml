@@ -1,13 +1,22 @@
-# ...moved from root, see previous content...
-
+name: spiderfoot-sf
+base: core24
+summary: Command-line client for the SpiderFoot REST API
+description: Manage an existing SpiderFoot server using the sf command-line client.
+grade: stable
+confinement: strict
+adopt-info: sf
+apps:
+  sf:
+    command: bin/sf
+    plugs: [network]
 parts:
-  spiderfoot:
-    plugin: python
+  sf:
+    plugin: nil
     source: .
-    python-packages:
-      - .
-    stage:
-      - modules/**
-      - correlations/**
-      - spiderfoot/**
-      - sfapi.py
+    build-packages: [golang-go]
+    override-build: |
+      version=$(cat VERSION)
+      craftctl set version="$version"
+      cd cli
+      mkdir -p "$CRAFT_PART_INSTALL/bin"
+      CGO_ENABLED=0 go build -mod=readonly -trimpath -ldflags="-X github.com/spiderfoot/spiderfoot-cli/cmd.version=$version" -o "$CRAFT_PART_INSTALL/bin/sf" .

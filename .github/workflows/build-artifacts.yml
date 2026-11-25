@@ -10,6 +10,36 @@ permissions:
   id-token: write
 
 jobs:
+  snap:
+    name: Build and test sf Snap
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare CLI-only build context
+        run: |
+          mkdir -p "$RUNNER_TEMP/sf-snap/snap"
+          cp -R cli VERSION "$RUNNER_TEMP/sf-snap/"
+          cp packaging/snapcraft.yaml "$RUNNER_TEMP/sf-snap/snap/snapcraft.yaml"
+      - name: Build Snap
+        id: pack
+        uses: snapcore/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1
+        with:
+          path: ${{ runner.temp }}/sf-snap
+      - name: Install and verify packaged client
+        env:
+          SNAP_FILE: ${{ steps.pack.outputs.snap }}
+        run: |
+          test -s "$SNAP_FILE"
+          sudo snap install --dangerous "$SNAP_FILE"
+          /snap/bin/spiderfoot-sf.sf version | grep -Fx "SpiderFoot CLI v$(cat VERSION)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spiderfoot-sf-linux-amd64-snap
+          path: ${{ steps.pack.outputs.snap }}
+          if-no-files-found: error
+
   cli-binaries:
     name: Build CLI (${{ matrix.goos }}/${{ matrix.goarch }})
     runs-on: ubuntu-latest
@@ -182,18 +212,6 @@ jobs:
         with:
           name: spiderfoot-${{ steps.get_version.outputs.version }}-homebrew-formula
           path: spiderfoot.rb
-      - name: Build Snap package (Snapcraft, Python 3.9 only)
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
-        run: |
-          if grep -q 'VERSION_CODENAME=noble' /etc/os-release; then
-            echo "Snapcraft is not available for Ubuntu 24.04 (Noble). Skipping Snap build."
-            exit 0
-          fi
-          sudo apt-get update
-          sudo apt-get install -y snapcraft
-          cp packaging/snapcraft.yaml .
-          snapcraft pack || echo "Snapcraft build may require snapcraft.yaml customization."
-
       - name: Validate .deb package
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
         run: |
@@ -208,12 +226,6 @@ jobs:
           sudo apt-get install -y rpm
           rpm -qpl dist/*.rpm
           rpm -ivh --test dist/*.rpm || true
-      - name: Validate Snap package
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
-        run: |
-          sudo apt-get install -y snapd
-          snap install --dangerous *.snap || true
-          snap run spiderfoot || true
       - name: Validate Homebrew formula
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
         run: |
