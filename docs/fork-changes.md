@@ -6,6 +6,8 @@ deployment that actually boots, persists configuration, and runs scans
 end-to-end** — without the rough edges that surface the first time you bring
 up the full Compose stack.
 
+Development is independent. The [selective sync record](upstream-sync.md) identifies the upstream baseline and backports; this fork does not automatically merge upstream releases.
+
 ## Summary
 
 | Area | Symptom upstream | Fix in this fork | Commit |
@@ -41,7 +43,7 @@ af41a0eb fix(compose): mount writable tmpfs for spiderfoot cache and logs
 | Project | Repo | Role |
 |---|---|---|
 | Original | [`smicallef/spiderfoot`](https://github.com/smicallef/spiderfoot) | Original SpiderFoot by Steve Micallef (since 2012) |
-| Active fork | [`poppopjmp/spiderfoot`](https://github.com/poppopjmp/spiderfoot) | Modern v6 microservices rewrite (Agostino "Van1sh" Panico) — the upstream this fork tracks |
+| Active fork | [`poppopjmp/spiderfoot`](https://github.com/poppopjmp/spiderfoot) | Modern v6 microservices rewrite (Agostino "Van1sh" Panico); source for selective backports, not a tracked release branch |
 | This fork | [`kolezka/spiderfoottoe`](https://github.com/kolezka/spiderfoottoe) | Self-hosted dev fixes — read-only-fs, persistence, logging |
 
 Upstream `poppopjmp/spiderfoot` v6 is an ambitious rewrite (microservices,

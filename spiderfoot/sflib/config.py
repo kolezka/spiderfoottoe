@@ -73,7 +73,8 @@ def configUnserialize(opts: dict, referencePoint: dict, filterSystem: bool = Tru
         if opt not in opts:
             continue
         if isinstance(referencePoint[opt], bool):
-            returnOpts[opt] = True if opts[opt] == "1" else False
+            # Serialization emits integers; database reads return strings.
+            returnOpts[opt] = str(opts[opt]) == "1"
             continue
         if isinstance(referencePoint[opt], str):
             returnOpts[opt] = str(opts[opt])
@@ -118,7 +119,7 @@ def configUnserialize(opts: dict, referencePoint: dict, filterSystem: bool = Tru
                 if isinstance(ref_mod, list) and len(ref_mod) == 0:
                     continue
                 if isinstance(ref_mod, bool):
-                    returnOpts['__modules__'][modName]['opts'][opt] = opts[f"{modName}:{opt}"] == "1"
+                    returnOpts['__modules__'][modName]['opts'][opt] = str(opts[f"{modName}:{opt}"]) == "1"
                     continue
                 if isinstance(ref_mod, str):
                     returnOpts['__modules__'][modName]['opts'][opt] = str(opts[f"{modName}:{opt}"])

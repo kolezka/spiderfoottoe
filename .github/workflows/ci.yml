@@ -32,7 +32,10 @@ jobs:
           pip install flake8 pylint bandit
           pip install -r requirements.txt
 
-      - name: Flake8
+      - name: Flake8 (blocking syntax and control-flow checks)
+        run: flake8 spiderfoot/ modules/ --select=E9,F63,F7 --show-source --statistics
+
+      - name: Flake8 (advisory style report)
         continue-on-error: true
         run: |
           # Run flake8 for informational output but do not block CI on violations

@@ -15,6 +15,7 @@ on:
 
 jobs:
   sync-wiki:
+    if: toJSON(github.event.repository.has_wiki) != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
